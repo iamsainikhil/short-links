@@ -1,0 +1,149 @@
+@import './styles/fontshare.css';
+
+/* CSS Variables MUST be outside @layer for proper cascade */
+:root {
+  /* Clean neutral background #FAFAFA */
+  --background: 0 0% 98%;
+  --foreground: 0 0% 15%;
+
+  /* Card surfaces - pure white */
+  --card: 0 0% 100%;
+  --card-foreground: 0 0% 15%;
+
+  /* Popover matching cards */
+  --popover: 0 0% 100%;
+  --popover-foreground: 0 0% 15%;
+
+  /* Primary - Pure dark gray */
+  --primary: 0 0% 20%;
+  --primary-foreground: 0 0% 98%;
+
+  /* Secondary - Light gray */
+  --secondary: 0 0% 96%;
+  --secondary-foreground: 0 0% 25%;
+
+  /* Muted - Gentle gray */
+  --muted: 0 0% 94%;
+  --muted-foreground: 0 0% 45%;
+
+  /* Accent - Blue */
+  --accent: 220 90% 55%;
+  --accent-foreground: 0 0% 100%;
+
+  /* Highlight - Light blue */
+  --highlight: 220 100% 97%;
+  --highlight-foreground: 220 80% 40%;
+
+  /* Destructive */
+  --destructive: 0 72% 51%;
+  --destructive-foreground: 0 0% 98%;
+
+  /* Borders & inputs */
+  --border: 0 0% 90%;
+  --input: 0 0% 92%;
+  --ring: 220 90% 55%;
+
+  --radius: 0.75rem;
+
+  /* Paper texture effect */
+  --paper-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 4px 12px rgba(0, 0, 0, 0.03);
+  --paper-shadow-lg: 0 2px 8px rgba(0, 0, 0, 0.04), 0 8px 24px rgba(0, 0, 0, 0.06);
+}
+
+.dark {
+  --background: 0 0% 8%;
+  --foreground: 0 0% 98%;
+
+  --card: 0 0% 15%;
+  --card-foreground: 0 0% 98%;
+
+  --popover: 0 0% 15%;
+  --popover-foreground: 0 0% 98%;
+
+  --primary: 0 0% 95%;
+  --primary-foreground: 0 0% 8%;
+
+  --secondary: 0 0% 25%;
+  --secondary-foreground: 0 0% 95%;
+
+  --muted: 0 0% 30%;
+  --muted-foreground: 0 0% 75%;
+
+  --accent: 220 85% 60%;
+  --accent-foreground: 0 0% 100%;
+
+  --highlight: 220 50% 20%;
+  --highlight-foreground: 220 85% 75%;
+
+  --destructive: 0 72% 60%;
+  --destructive-foreground: 0 0% 98%;
+
+  --border: 0 0% 30%;
+  --input: 0 0% 32%;
+  --ring: 220 85% 60%;
+
+  --radius: 0.75rem;
+}
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html, body {
+    width: 100%;
+    min-height: 100%;
+    max-width: 100vw;
+    overflow-x: hidden;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    margin: 0;
+    font-family: 'Satoshi', system-ui, sans-serif;
+    font-synthesis: none;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Cabinet Grotesk', system-ui, sans-serif;
+    font-weight: 700;
+  }
+}
+
+@layer components {
+  /* Tactile button */
+  .btn-tactile {
+    @apply relative overflow-hidden transition-all duration-200;
+    transform: translateY(0);
+  }
+
+  .btn-tactile:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--paper-shadow-lg);
+  }
+
+  .btn-tactile:active {
+    transform: translateY(0);
+    box-shadow: var(--paper-shadow);
+  }
+
+  /* Remove blue focus ring from inputs and textareas */
+  input:focus,
+  textarea:focus,
+  input:focus-visible,
+  textarea:focus-visible {
+    outline: none;
+    box-shadow: none;
+    border-color: hsl(var(--border));
+  }
+}
+
+@layer utilities {
+  .font-heading {
+    font-family: 'Cabinet Grotesk', system-ui, sans-serif !important;
+  }
+}
