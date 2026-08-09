@@ -2,5 +2,11 @@
   "framework": "nextjs",
   "installCommand": "npm install",
   "buildCommand": "npm run build",
-  "devCommand": "npm run dev"
+  "devCommand": "npm run dev",
+  "redirects": [
+    { "source": "/", "destination": "/short-links", "permanent": false },
+    { "source": "/:path(dashboard|link-error|redirect-error)", "destination": "/short-links/:path", "permanent": false },
+    { "source": "/l/:path*", "destination": "/short-links/l/:path*", "permanent": false },
+    { "source": "/:asset(robots.txt|favicon.svg|logo.svg|404-error.json)", "destination": "/short-links/:asset", "permanent": false }
+  ]
 }
