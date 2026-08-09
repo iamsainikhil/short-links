@@ -44,8 +44,10 @@ const getRequestOrigin = (request: NextRequest) => {
   return request.nextUrl.origin;
 };
 
+const getBasePath = () => process.env.NEXT_PUBLIC_BASE_PATH || '';
+
 const buildErrorRedirect = (request: NextRequest, reason: string) => {
-  const basePath = request.nextUrl.basePath;
+  const basePath = getBasePath();
   return new URL(`${basePath}/link-error?reason=${reason}`, getRequestOrigin(request)).toString();
 };
 
@@ -99,7 +101,7 @@ export async function GET(
       if (linkData.movedTo === slug) {
         return redirectWithNoStore(buildErrorRedirect(request, 'invalid'));
       }
-      const basePath = request.nextUrl.basePath;
+      const basePath = getBasePath();
       const query = request.nextUrl.search;
       const target = new URL(`${basePath}/l/${linkData.movedTo}${query}`, getRequestOrigin(request));
       return redirectWithNoStore(target.toString());
@@ -118,7 +120,7 @@ export async function GET(
 
     // Prevent infinite redirect loops: reject destinations that route back
     // through this app's own `/l/` short links or non-HTTP protocols.
-    const basePath = request.nextUrl.basePath;
+    const basePath = getBasePath();
     if (isSelfReferentialUrl(destination, getRequestOrigin(request), basePath)) {
       return redirectWithNoStore(buildErrorRedirect(request, 'invalid'));
     }
