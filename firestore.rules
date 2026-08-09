@@ -1,0 +1,54 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function ownerConfigPath() {
+      return /databases/$(database)/documents/app_config/private;
+    }
+
+    function ownerConfigExists() {
+      return exists(ownerConfigPath());
+    }
+
+    function ownerUid() {
+      return get(ownerConfigPath()).data.ownerUid;
+    }
+
+    function isOwner() {
+      return isSignedIn() && ownerConfigExists() && request.auth.uid == ownerUid();
+    }
+
+    // One-time bootstrap doc to lock this project to a single owner uid.
+    match /app_config/private {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn()
+        && !ownerConfigExists()
+        && request.resource.data.ownerUid == request.auth.uid;
+      allow update, delete: if isOwner()
+        && request.resource.data.ownerUid == resource.data.ownerUid;
+    }
+
+    // Link documents are written by the client as the owner. The public
+    // redirect read path uses the Admin SDK, which bypasses these rules, so
+    // no public read is required here.
+    match /links/{slug} {
+      allow read, create, update, delete: if isOwner();
+    }
+
+    // Click events are written ONLY by the server-side Admin SDK route handler
+    // (/l/[slug]). Admin SDK writes are not limited by these rules; the client
+    // may only read them (owner analytics) or delete them (cleanup on delete).
+    match /links/{slug}/clicks/{clickId} {
+      allow read: if isOwner();
+      allow create, update: if false;
+      allow delete: if isOwner();
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
