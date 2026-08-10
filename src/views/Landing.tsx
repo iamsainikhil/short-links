@@ -29,7 +29,7 @@ function SiteHeader() {
             <span className="font-heading text-lg font-bold leading-tight text-foreground">
               Short Links
             </span>
-            <span className="text-xs text-muted-foreground">
+            <span className="hidden text-xs text-muted-foreground sm:block">
               URL shortener with click analytics
             </span>
           </div>
@@ -92,7 +92,7 @@ function ExampleLinkCard({
         </div>
         <button
           onClick={copyShortUrl}
-          className="rounded-full p-1.5 text-muted-foreground opacity-0 transition-opacity hover:bg-secondary hover:text-foreground group-hover:opacity-100"
+          className="rounded-full p-1.5 text-muted-foreground opacity-100 transition-opacity hover:bg-secondary hover:text-foreground sm:opacity-0 sm:group-hover:opacity-100"
           title="Copy short link"
         >
           <Icon icon="lucide:copy" className="h-4 w-4" />
@@ -175,11 +175,11 @@ export default function Landing() {
               <Icon icon="lucide:lock" className="h-3 w-3" />
               Private by default · Fork to self-host
             </span>
-<h1 className="font-heading text-4xl font-bold tracking-tight text-foreground sm:text-6xl">
+            <h1 className="font-heading text-4xl font-bold tracking-tight text-foreground sm:text-5xl lg:text-6xl">
               <span className="sr-only">{LANDING_CONFIG.title}</span>
               <span
                 aria-hidden="true"
-                className="inline-flex items-baseline gap-1 whitespace-nowrap"
+                className="inline-flex flex-col items-center gap-1 lg:flex-row lg:items-baseline lg:gap-1"
               >
                 <span className="shrink-0">{LANDING_CONFIG.title}</span>
                 <span className="relative inline-block">

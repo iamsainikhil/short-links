@@ -17,7 +17,7 @@ export interface ExampleLink {
 
 export const LANDING_CONFIG: LandingOwnerConfig = {
   name: 'Sai Nikhil',
-  names: ['you', 'your team', 'your readers', 'me!'],
+  names: ['creators', 'your team', 'your brand', 'everyone'],
   title: 'Short links for ',
   description: APP_DESCRIPTION,
 };
