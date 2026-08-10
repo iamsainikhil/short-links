@@ -25,7 +25,7 @@ function GateHeader() {
         <img src={`${process.env.NEXT_PUBLIC_BASE_PATH ?? ''}/logo.svg`} alt="Short Links" className="h-12 w-12 rounded-xl" />
         <div>
           <h1 className="font-heading text-xl font-bold text-foreground">Short Links</h1>
-          <p className="text-sm text-muted-foreground">URL shortener with click analytics</p>
+          <p className="hidden text-sm text-muted-foreground sm:block">URL shortener with click analytics</p>
         </div>
       </a>
       <div className="flex items-center gap-2">

@@ -114,6 +114,121 @@ function DestructiveConfirmDialog({
   );
 }
 
+interface LinkRowActionHandlers {
+  onCopy: () => void;
+  onAnalytics: () => void;
+  onEdit: () => void;
+  onDelete: () => void;
+}
+
+function LinkSlugBadge({ link }: { link: ShortLink }) {
+  const moved = Boolean(link.movedTo);
+  return (
+    <>
+      <Badge
+        variant={moved ? "secondary" : link.active ? "default" : "outline"}
+        className="max-w-[10rem] truncate"
+        title={link.slug}
+      >
+        /{link.slug}
+      </Badge>
+      {moved && (
+        <span
+          className="text-xs text-muted-foreground"
+          title={`Moved to /${link.movedTo}`}
+        >
+          <Icon icon="lucide:arrow-right" className="h-3 w-3" />
+        </span>
+      )}
+    </>
+  );
+}
+
+function LinkActiveSwitch({
+  link,
+  onToggle,
+}: {
+  link: ShortLink;
+  onToggle: (link: ShortLink, active: boolean) => void;
+}) {
+  const moved = Boolean(link.movedTo);
+  return (
+    <Switch
+      checked={link.active}
+      disabled={moved}
+      onCheckedChange={(value) => onToggle(link, value)}
+      aria-label={`Toggle ${link.slug}`}
+    />
+  );
+}
+
+function LinkRowActions({
+  link,
+  onCopy,
+  onAnalytics,
+  onEdit,
+  onDelete,
+}: {
+  link: ShortLink;
+} & LinkRowActionHandlers) {
+  return (
+    <div className="flex items-center justify-end gap-1">
+      <Button
+        variant="ghost"
+        size="icon"
+        className="rounded-full"
+        title="Copy short link"
+        onClick={onCopy}
+      >
+        <Icon icon="lucide:copy" className="h-4 w-4" />
+      </Button>
+      <Button
+        variant="ghost"
+        size="icon"
+        className="rounded-full"
+        title="Analytics"
+        onClick={onAnalytics}
+      >
+        <Icon icon="lucide:bar-chart-2" className="h-4 w-4" />
+      </Button>
+      <Button
+        variant="ghost"
+        size="icon"
+        className="rounded-full"
+        title="Open destination"
+        onClick={() => window.open(link.url, "_blank", "noopener,noreferrer")}
+      >
+        <Icon icon="lucide:external-link" className="h-4 w-4" />
+      </Button>
+      <Button
+        variant="ghost"
+        size="icon"
+        className="rounded-full"
+        title="Edit"
+        onClick={onEdit}
+      >
+        <Icon icon="lucide:edit-3" className="h-4 w-4" />
+      </Button>
+      <DestructiveConfirmDialog
+        trigger={
+          <Button
+            variant="ghost"
+            size="icon"
+            className="rounded-full text-destructive"
+            title="Delete"
+          >
+            <Icon icon="lucide:trash-2" className="h-4 w-4" />
+          </Button>
+        }
+        title={`Delete /${link.slug}?`}
+        description="This will permanently delete the link and all of its click analytics. The short URL will stop working immediately."
+        actionLabel="Yes, delete"
+        onConfirm={onDelete}
+      />
+    </div>
+  );
+}
+
 const buildChartDays = (
   events: ClickEvent[],
   chartRange: 7 | 30,
@@ -256,7 +371,7 @@ function AnalyticsContent({
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid gap-3 sm:grid-cols-3">
         <Card>
           <CardHeader className="pb-2">
             <CardDescription>Total clicks</CardDescription>
@@ -320,7 +435,7 @@ function AnalyticsContent({
 
           <div className="space-y-2">
             <p className="text-sm font-medium text-foreground">Recent events</p>
-            <div className="max-h-80 overflow-y-auto rounded-xl border border-border">
+            <div className="hidden max-h-80 overflow-x-auto rounded-xl border border-border sm:block">
               <table className="w-full min-w-[720px] text-left text-xs">
                 <thead className="sticky top-0 bg-muted/80 text-muted-foreground backdrop-blur">
                   <tr>
@@ -358,6 +473,36 @@ function AnalyticsContent({
                 </tbody>
               </table>
             </div>
+            <ul className="max-h-80 divide-y divide-border overflow-y-auto rounded-xl border border-border sm:hidden">
+              {pageEvents.map((e) => (
+                <li key={e.id} className="flex flex-col gap-1 p-3 text-xs">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="whitespace-nowrap font-medium text-foreground">
+                      {timeAgo(e.timestamp)}
+                    </span>
+                    <span
+                      className="min-w-0 truncate text-muted-foreground"
+                      title={e.referrer}
+                    >
+                      {referrerHost(e.referrer) || "direct"}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between gap-2 text-muted-foreground">
+                    <span className="min-w-0 truncate">
+                      {[e.country, e.region, e.city]
+                        .filter(Boolean)
+                        .join(" · ") || "—"}
+                    </span>
+                    <span
+                      className="min-w-0 truncate"
+                      title={e.utm_source}
+                    >
+                      {e.utm_source || "—"}
+                    </span>
+                  </div>
+                </li>
+              ))}
+            </ul>
             {totalPages > 1 && (
               <div className="flex items-center justify-between text-xs text-muted-foreground">
                 <span>
@@ -933,6 +1078,13 @@ export function LinksDashboard() {
     }
   };
 
+  const getRowActions = (link: ShortLink): LinkRowActionHandlers => ({
+    onCopy: () => copyShortLink(link.slug),
+    onAnalytics: () => openAnalytics(link),
+    onEdit: () => setEditingLink(link),
+    onDelete: () => removeLink(link),
+  });
+
   if (!ownerUid) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background p-4">
@@ -1070,7 +1222,7 @@ export function LinksDashboard() {
           </Card>
         ) : (
           <Card className="overflow-hidden">
-            <div className="overflow-x-auto">
+            <div className="hidden overflow-x-auto lg:block">
               <table className="w-full min-w-[960px] text-left text-sm">
                 <thead className="border-b border-border bg-muted/40 text-xs text-muted-foreground">
                   <tr>
@@ -1087,144 +1239,68 @@ export function LinksDashboard() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
-                  {filteredLinks.map((link) => {
-                    const moved = Boolean(link.movedTo);
-                    return (
-                      <tr
-                        key={link.slug}
-                        className="transition-colors hover:bg-muted/30"
+                  {filteredLinks.map((link) => (
+                    <tr
+                      key={link.slug}
+                      className="transition-colors hover:bg-muted/30"
+                    >
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-2">
+                          <LinkSlugBadge link={link} />
+                        </div>
+                      </td>
+                      <td
+                        className="max-w-[220px] truncate px-4 py-3 text-muted-foreground"
+                        title={link.url}
                       >
-                        <td className="px-4 py-3">
-                          <div className="flex items-center gap-2">
-                            <Badge
-                              variant={
-                                moved
-                                  ? "secondary"
-                                  : link.active
-                                    ? "default"
-                                    : "outline"
-                              }
-                            >
-                              /{link.slug}
-                            </Badge>
-                            {moved && (
-                              <span
-                                className="text-xs text-muted-foreground"
-                                title={`Moved to /${link.movedTo}`}
-                              >
-                                <Icon
-                                  icon="lucide:arrow-right"
-                                  className="h-3 w-3"
-                                />
-                              </span>
-                            )}
-                          </div>
-                        </td>
-                        <td
-                          className="max-w-[220px] truncate px-4 py-3 text-muted-foreground"
-                          title={link.url}
-                        >
-                          {formatDestinationSummary(link.url)}
-                        </td>
-                        <td className="px-4 py-3 text-right font-medium tabular-nums">
-                          {link.stats.clickCount}
-                        </td>
-                        <td className="px-4 py-3 text-right tabular-nums text-muted-foreground">
-                          {link.stats.uniqueVisitors}
-                        </td>
-                        <td className="whitespace-nowrap px-4 py-3 text-muted-foreground">
-                          {timeAgo(link.stats.lastClickAt)}
-                        </td>
-                        <td className="whitespace-nowrap px-4 py-3 text-muted-foreground">
-                          {timeAgo(link.createdAt)}
-                        </td>
-                        <td className="px-4 py-3">
-                          <Switch
-                            checked={link.active}
-                            disabled={moved}
-                            onCheckedChange={(value) =>
-                              toggleActive(link, value)
-                            }
-                            aria-label={`Toggle ${link.slug}`}
-                          />
-                        </td>
-                        <td className="px-4 py-3">
-                          <div className="flex items-center justify-end gap-1">
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="rounded-full"
-                              title="Copy short link"
-                              onClick={() => copyShortLink(link.slug)}
-                            >
-                              <Icon icon="lucide:copy" className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="rounded-full"
-                              title="Analytics"
-                              onClick={() => openAnalytics(link)}
-                            >
-                              <Icon
-                                icon="lucide:bar-chart-2"
-                                className="h-4 w-4"
-                              />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="rounded-full"
-                              title="Open destination"
-                              onClick={() =>
-                                window.open(
-                                  link.url,
-                                  "_blank",
-                                  "noopener,noreferrer",
-                                )
-                              }
-                            >
-                              <Icon
-                                icon="lucide:external-link"
-                                className="h-4 w-4"
-                              />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="rounded-full"
-                              title="Edit"
-                              onClick={() => setEditingLink(link)}
-                            >
-                              <Icon icon="lucide:edit-3" className="h-4 w-4" />
-                            </Button>
-                            <DestructiveConfirmDialog
-                              trigger={
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  className="rounded-full text-destructive"
-                                  title="Delete"
-                                >
-                                  <Icon
-                                    icon="lucide:trash-2"
-                                    className="h-4 w-4"
-                                  />
-                                </Button>
-                              }
-                              title={`Delete /${link.slug}?`}
-                              description="This will permanently delete the link and all of its click analytics. The short URL will stop working immediately."
-                              actionLabel="Yes, delete"
-                              onConfirm={() => removeLink(link)}
-                            />
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
+                        {formatDestinationSummary(link.url)}
+                      </td>
+                      <td className="px-4 py-3 text-right font-medium tabular-nums">
+                        {link.stats.clickCount}
+                      </td>
+                      <td className="px-4 py-3 text-right tabular-nums text-muted-foreground">
+                        {link.stats.uniqueVisitors}
+                      </td>
+                      <td className="whitespace-nowrap px-4 py-3 text-muted-foreground">
+                        {timeAgo(link.stats.lastClickAt)}
+                      </td>
+                      <td className="whitespace-nowrap px-4 py-3 text-muted-foreground">
+                        {timeAgo(link.createdAt)}
+                      </td>
+                      <td className="px-4 py-3">
+                        <LinkActiveSwitch link={link} onToggle={toggleActive} />
+                      </td>
+                      <td className="px-4 py-3">
+                        <LinkRowActions link={link} {...getRowActions(link)} />
+                      </td>
+                    </tr>
+                  ))}
                 </tbody>
               </table>
             </div>
+            <ul className="divide-y divide-border lg:hidden">
+              {filteredLinks.map((link) => (
+                <li key={link.slug} className="flex flex-col gap-3 p-4">
+                  <div className="flex items-center gap-2">
+                    <LinkSlugBadge link={link} />
+                    <span
+                      className="min-w-0 flex-1 truncate text-sm text-muted-foreground"
+                      title={link.url}
+                    >
+                      {formatDestinationSummary(link.url)}
+                    </span>
+                    <LinkActiveSwitch link={link} onToggle={toggleActive} />
+                  </div>
+                  <div className="flex items-center justify-between gap-3 border-t border-border/70 pt-3">
+                    <span className="min-w-0 truncate text-xs text-muted-foreground">
+                      {link.stats.clickCount} clicks ·{" "}
+                      {timeAgo(link.stats.lastClickAt)}
+                    </span>
+                    <LinkRowActions link={link} {...getRowActions(link)} />
+                  </div>
+                </li>
+              ))}
+            </ul>
           </Card>
         )}
       </div>
