@@ -4,6 +4,15 @@ export interface ShortLinkStats {
   lastClickAt: string | null;
 }
 
+export interface LinkFolder {
+  id: string;
+  ownerUid: string;
+  name: string;
+  createdAt: string;
+  updatedAt: string;
+  sortOrder?: number;
+}
+
 export interface ShortLink {
   slug: string;
   ownerUid: string;
@@ -15,12 +24,14 @@ export interface ShortLink {
   updatedAt: string;
   movedTo?: string | null;
   stats: ShortLinkStats;
+  folderIds?: string[];
 }
 
 export interface NewShortLinkInput {
   slug: string;
   url: string;
   description?: string;
+  folderIds?: string[];
 }
 
 export interface ClickEvent {
