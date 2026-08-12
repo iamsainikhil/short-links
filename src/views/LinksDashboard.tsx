@@ -1764,7 +1764,16 @@ export function LinksDashboard() {
       const item = groupItems[i];
       if (item.kind === "group") {
         const range = linkRanges[i];
-        if (range && range.start < endLink && range.end > startLink) {
+        if (range && range.start === range.end) {
+          const groupPage =
+            totalLinks === 0
+              ? 0
+              : Math.min(
+                  Math.floor(range.start / PAGE_SIZE),
+                  totalPages - 1,
+                );
+          if (safePage === groupPage) result.push(item);
+        } else if (range && range.start < endLink && range.end > startLink) {
           result.push(item);
         }
       } else {
@@ -1775,7 +1784,7 @@ export function LinksDashboard() {
       }
     }
     return result;
-  }, [groupItems, linkRanges, safePage, totalLinks]);
+  }, [groupItems, linkRanges, safePage, totalLinks, totalPages]);
 
   const pageSlugs = useMemo(
     () =>
