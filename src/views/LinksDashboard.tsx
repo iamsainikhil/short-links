@@ -2187,6 +2187,21 @@ export function LinksDashboard() {
         </section>
 
         <section className="flex flex-wrap items-center gap-2">
+          <div className="ml-auto flex items-center rounded-full border border-border">
+            {(["all", "active", "inactive"] as const).map((filter) => (
+              <button
+                key={filter}
+                onClick={() => setStatusFilter(filter)}
+                className={`px-3 py-1.5 text-sm first:rounded-l-full last:rounded-r-full transition-colors ${
+                  statusFilter === filter
+                    ? "bg-primary text-primary-foreground"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {filter === "all" ? "All" : filter === "active" ? "Active" : "Inactive"}
+              </button>
+            ))}
+          </div>
           <label className="flex items-center gap-2 rounded-full border border-border bg-card py-1.5 pl-3 pr-1.5 text-xs text-muted-foreground">
             Sort by
             <select
@@ -2220,21 +2235,6 @@ export function LinksDashboard() {
               className="h-4 w-4"
             />
           </Button>
-          <div className="ml-auto flex items-center rounded-full border border-border">
-            {(["all", "active", "inactive"] as const).map((filter) => (
-              <button
-                key={filter}
-                onClick={() => setStatusFilter(filter)}
-                className={`px-3 py-1.5 text-sm first:rounded-l-full last:rounded-r-full transition-colors ${
-                  statusFilter === filter
-                    ? "bg-primary text-primary-foreground"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                {filter === "all" ? "All" : filter === "active" ? "Active" : "Inactive"}
-              </button>
-            ))}
-          </div>
         </section>
 
         {selected.size > 0 && (
@@ -2327,7 +2327,7 @@ export function LinksDashboard() {
             <div className="hidden overflow-x-auto lg:block">
               <table className="w-full min-w-[1100px] text-left text-sm">
                 <thead className="border-b border-border bg-muted/40 text-xs text-muted-foreground">
-                  <tr>
+                  <tr className="group">
                     <th className="px-4 py-3">
                       <input
                         ref={selectAllRef}
@@ -2335,7 +2335,11 @@ export function LinksDashboard() {
                         checked={allPageSelected}
                         onChange={toggleSelectAllOnPage}
                         aria-label="Select all links on this page"
-                        className="h-4 w-4 accent-primary"
+                        className={`h-4 w-4 accent-primary transition-opacity ${
+                          allPageSelected || somePageSelected
+                            ? "opacity-100"
+                            : "opacity-0 group-hover:opacity-100 focus-visible:opacity-100"
+                        }`}
                       />
                     </th>
                     <th className="px-4 py-3 font-medium">Slug</th>
@@ -2356,7 +2360,7 @@ export function LinksDashboard() {
                     item.kind === "group" ? (
                       <tr
                         key={`group-${item.group.key}`}
-                        className="border-y border-border bg-muted/20"
+                        className="group border-y border-border bg-muted/20"
                       >
                         <td colSpan={10} className="px-4 py-2">
                           <div className="flex items-center justify-between gap-2">
@@ -2370,7 +2374,12 @@ export function LinksDashboard() {
                                 onChange={() => toggleGroupSelection(item.group)}
                                 disabled={item.group.links.length === 0}
                                 aria-label={`Select all links in ${item.group.title}`}
-                                className="h-4 w-4 accent-primary disabled:opacity-30"
+                                className={`h-4 w-4 accent-primary transition-opacity disabled:opacity-30 ${
+                                  groupSomeSelected(item.group) ||
+                                  groupAllSelected(item.group)
+                                    ? "opacity-100"
+                                    : "opacity-0 group-hover:opacity-100 focus-visible:opacity-100"
+                                }`}
                               />
                               <button
                                 onClick={() => toggleCollapsed(item.group.key)}
@@ -2450,7 +2459,7 @@ export function LinksDashboard() {
                     ) : (
                       <tr
                         key={`${item.group.key}-${item.link.slug}`}
-                        className={`transition-colors ${
+                        className={`group transition-colors ${
                           selected.has(item.link.slug)
                             ? "bg-muted/40"
                             : "hover:bg-muted/30"
@@ -2462,7 +2471,11 @@ export function LinksDashboard() {
                             checked={selected.has(item.link.slug)}
                             onChange={() => toggleSelected(item.link.slug)}
                             aria-label={`Select /${item.link.slug}`}
-                            className="h-4 w-4 accent-primary"
+                            className={`h-4 w-4 accent-primary transition-opacity ${
+                              selected.has(item.link.slug)
+                                ? "opacity-100"
+                                : "opacity-0 group-hover:opacity-100 focus-visible:opacity-100"
+                            }`}
                           />
                         </td>
                         <td className="px-4 py-3">
