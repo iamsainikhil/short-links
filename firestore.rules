@@ -47,6 +47,13 @@ service cloud.firestore {
       allow delete: if isOwner();
     }
 
+    // Folders group links together. Links carry their folder membership as a
+    // small `folderIds` array, so folder reads/writes are owner-only and the
+    // public redirect path is unaffected (a single link doc read).
+    match /folders/{folderId} {
+      allow read, create, update, delete: if isOwner();
+    }
+
     match /{document=**} {
       allow read, write: if false;
     }
